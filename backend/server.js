@@ -6,22 +6,24 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3090;
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/char', {
   useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useCreateIndex: true
+  useUnifiedTopology: true
 });
 
 const Schema = mongoose.Schema;
 
+const power = new Schema({
+  name: String,
+})
 const characters = new Schema({
   nam: String,
   slug: { type: String, unique: true, trim: true },
   gender: String,
 
-  power: Array,
+  power: [power],
 });
 const charactersModal = mongoose.model('characters', characters);
 
@@ -29,7 +31,7 @@ app.get('/', (req, res) => {
   res.send('hello from backend ')
 });
 
-app.get('/psy', (req, res) => {
+app.get('/get-characters', (req, res) => {
 
   const url = `https://psychonauts-api.herokuapp.com/api/characters?limit=11`
 
@@ -44,14 +46,14 @@ app.get('/psy', (req, res) => {
 
 
 
-app.get('/psy/fav', (req, res) => {
+app.get('/favorite', (req, res) => {
   charactersModal.find({}, (err, data) => {
     res.send(data)
   })
 });
 
 
-app.post('/psy/fav', (req, res) => {
+app.post('/favorite', (req, res) => {
   const {
     name,
     gender,
@@ -77,7 +79,7 @@ app.post('/psy/fav', (req, res) => {
 });
 
 
-app.delete('/psy/fav/:slug', (req, res) => {
+app.delete('/favorite/:slug', (req, res) => {
   const slug = req.params.slug;
   charactersModal.remove({ slug: slug }, (err, data) => {
     if (err) {
@@ -92,7 +94,7 @@ app.delete('/psy/fav/:slug', (req, res) => {
 });
 
 
-app.put('/psy/fav/:slug', (req, res) => {
+app.put('/favorite/:slug', (req, res) => {
   const slug = req.params.slug;
   const {
     name,
